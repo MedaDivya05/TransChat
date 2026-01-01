@@ -1,6 +1,7 @@
 import React from 'react';
 import { Message } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { FileMessage } from './FileMessage';
 
 interface MessageBubbleProps {
   message: Message;
@@ -34,11 +35,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                 alt="Shared media"
                 className="rounded-lg max-w-full h-auto"
               />
-            ) : (
+            ) : message.mediaType === 'video' ? (
               <video
                 src={message.mediaUrl}
                 controls
                 className="rounded-lg max-w-full h-auto"
+              />
+            ) : (
+              <FileMessage
+                fileName={message.fileName || 'Download'}
+                fileSize={message.fileSize}
+                mediaUrl={message.mediaUrl}
               />
             )}
           </div>

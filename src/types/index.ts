@@ -13,7 +13,9 @@ export interface Message {
   originalText?: string;
   translatedText?: string;
   mediaUrl?: string;
-  mediaType?: 'image' | 'video';
+  mediaType?: 'image' | 'video' | 'file';
+  fileName?: string;
+  fileSize?: number;
   timestamp: Date;
 }
 

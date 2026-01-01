@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Send, Image, Video } from 'lucide-react';
+import { Send, Image, FileText } from 'lucide-react';
 
 interface MessageInputProps {
   onSendMessage: (text: string) => void;
@@ -13,6 +13,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   disabled,
 }) => {
   const [message, setMessage] = useState('');
+  const mediaInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -27,7 +28,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       onSendMedia(file);
-      if (fileInputRef.current) {
+      if (e.target === mediaInputRef.current) {
+        mediaInputRef.current.value = '';
+      } else if (e.target === fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
@@ -38,20 +41,38 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       <div className="flex items-center space-x-2">
         <input
           type="file"
-          ref={fileInputRef}
+          ref={mediaInputRef}
           onChange={handleFileSelect}
           accept="image/*,video/*"
           className="hidden"
         />
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.7z,.txt,.xls,.xlsx"
+          className="hidden"
+        />
+
+        <button
+          type="button"
+          onClick={() => mediaInputRef.current?.click()}
+          disabled={disabled}
+          className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors disabled:opacity-50"
+          title="Attach media"
+        >
+          <Image size={20} />
+        </button>
 
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
           className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors disabled:opacity-50"
-          title="Attach media"
+          title="Attach file"
         >
-          <Image size={20} />
+          <FileText size={20} />
         </button>
 
         <input

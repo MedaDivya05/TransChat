@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { signUp } from '../../services/authService';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Eye, EyeOff } from 'lucide-react';
 
 interface RegisterProps {
   onToggleMode: () => void;
@@ -12,6 +12,7 @@ export const Register: React.FC<RegisterProps> = ({ onToggleMode }) => {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,14 +89,23 @@ export const Register: React.FC<RegisterProps> = ({ onToggleMode }) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="Enter your password (min 6 characters)"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Enter your password (min 6 characters)"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <button

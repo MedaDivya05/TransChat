@@ -100,6 +100,8 @@ export const getChatMessages = (chatId: string, callback: (messages: Message[]) 
         translatedText: data.translatedText,
         mediaUrl: data.mediaUrl,
         mediaType: data.mediaType,
+        fileName: data.fileName,
+        fileSize: data.fileSize,
         timestamp: data.timestamp.toDate(),
       });
     });
@@ -113,8 +115,9 @@ export const sendMessage = async (
   receiverId: string,
   text?: string,
   mediaUrl?: string,
-  mediaType?: 'image' | 'video',
-  translatedText?: string
+  mediaType?: 'image' | 'video' | 'file',
+  fileName?: string,
+  fileSize?: number
 ): Promise<void> => {
   const messagesRef = collection(db, 'messages');
   await addDoc(messagesRef, {
@@ -122,17 +125,30 @@ export const sendMessage = async (
     senderId,
     receiverId,
     originalText: text || '',
-    translatedText: translatedText || '',
+    translatedText: '',
     mediaUrl: mediaUrl || '',
     mediaType: mediaType || '',
+    fileName: fileName || '',
+    fileSize: fileSize || 0,
     timestamp: Timestamp.now(),
   });
+
+  let lastMessage = text;
+  if (!lastMessage) {
+    if (mediaType === 'image') {
+      lastMessage = '📷 Photo';
+    } else if (mediaType === 'video') {
+      lastMessage = '🎥 Video';
+    } else if (mediaType === 'file') {
+      lastMessage = `📎 ${fileName}`;
+    }
+  }
 
   const chatRef = doc(db, 'chats', chatId);
   await setDoc(
     chatRef,
     {
-      lastMessage: text || (mediaType === 'image' ? '📷 Photo' : '🎥 Video'),
+      lastMessage: lastMessage || 'Message',
       lastMessageTime: Timestamp.now(),
     },
     { merge: true }

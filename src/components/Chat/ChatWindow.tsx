@@ -11,7 +11,7 @@ import {
   updateTranslationSettings,
 } from '../../services/chatService';
 import { translateText } from '../../services/translationService';
-import { uploadMedia, validateMediaFile } from '../../services/storageService';
+import { uploadMedia, validateMediaFile, getMediaType } from '../../services/storageService';
 
 interface ChatWindowProps {
   chatId: string;
@@ -81,8 +81,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     setUploading(true);
     try {
       const mediaUrl = await uploadMedia(file, currentUser.uid, chatId);
-      const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
-      await sendMessage(chatId, currentUser.uid, otherUser.uid, undefined, mediaUrl, mediaType);
+      const mediaType = getMediaType(file);
+      await sendMessage(
+        chatId,
+        currentUser.uid,
+        otherUser.uid,
+        undefined,
+        mediaUrl,
+        mediaType,
+        file.name,
+        file.size
+      );
     } catch (error) {
       console.error('Media upload error:', error);
       alert('Failed to upload media');

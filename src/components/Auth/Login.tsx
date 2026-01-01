@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { signIn } from '../../services/authService';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Eye, EyeOff } from 'lucide-react';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
 
 interface LoginProps {
   onToggleMode: () => void;
@@ -11,6 +12,8 @@ export const Login: React.FC<LoginProps> = ({ onToggleMode }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,17 +67,35 @@ export const Login: React.FC<LoginProps> = ({ onToggleMode }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="Enter your password"
-            />
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-xs text-teal-600 dark:text-teal-400 hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <button
@@ -96,6 +117,10 @@ export const Login: React.FC<LoginProps> = ({ onToggleMode }) => {
           </button>
         </p>
       </div>
+
+      {showForgotPassword && (
+        <ForgotPasswordModal onClose={() => setShowForgotPassword(false)} />
+      )}
     </div>
   );
 };
