@@ -17,6 +17,8 @@ export interface Message {
   fileName?: string;
   fileSize?: number;
   timestamp: Date;
+  deletedForEveryone?: boolean;
+  deletedAt?: Date;
 }
 
 export interface Chat {

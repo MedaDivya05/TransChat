@@ -9,9 +9,15 @@ import {
   getChatMessages,
   sendMessage,
   updateTranslationSettings,
+  deleteMessageForEveryone,
 } from '../../services/chatService';
 import { translateText } from '../../services/translationService';
 import { uploadMedia, validateMediaFile, getMediaType } from '../../services/storageService';
+import {
+  addLocalDeletedMessage,
+  isMessageLocallyDeleted,
+  getDeletedMessagesForChat,
+} from '../../services/deletionService';
 
 interface ChatWindowProps {
   chatId: string;
@@ -40,9 +46,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     if (!chatId) return;
 
     const unsubscribe = getChatMessages(chatId, async (fetchedMessages) => {
+      const deletedLocally = getDeletedMessagesForChat(chatId);
+      const filteredMessages = fetchedMessages.filter(
+        (msg) => !deletedLocally.has(msg.id)
+      );
+
       if (translationEnabled && currentUser) {
         const translatedMessages = await Promise.all(
-          fetchedMessages.map(async (msg) => {
+          filteredMessages.map(async (msg) => {
             if (msg.senderId !== currentUser.uid && msg.originalText && !msg.translatedText) {
               const translated = await translateText(msg.originalText, targetLanguage);
               return { ...msg, translatedText: translated };
@@ -52,7 +63,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         );
         setMessages(translatedMessages);
       } else {
-        setMessages(fetchedMessages.map(msg => ({ ...msg, translatedText: '' })));
+        setMessages(filteredMessages.map(msg => ({ ...msg, translatedText: '' })));
       }
     });
 
@@ -120,6 +131,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     setShowSettings(false);
   };
 
+  const handleDeleteLocalMessage = (messageId: string) => {
+    addLocalDeletedMessage(chatId, messageId);
+    setMessages(messages.filter((msg) => msg.id !== messageId));
+  };
+
+  const handleDeleteMessageForEveryone = async (messageId: string) => {
+    try {
+      await deleteMessageForEveryone(messageId);
+      setMessages(messages.filter((msg) => msg.id !== messageId));
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+      alert('Failed to delete message');
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
       <ChatHeader
@@ -137,7 +163,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         ) : (
           <>
             {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
+              <MessageBubble
+                key={message.id}
+                message={message}
+                onDeleteLocal={handleDeleteLocalMessage}
+                onDeleteForEveryone={handleDeleteMessageForEveryone}
+              />
             ))}
             <div ref={messagesEndRef} />
           </>

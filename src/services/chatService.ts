@@ -103,6 +103,8 @@ export const getChatMessages = (chatId: string, callback: (messages: Message[]) 
         fileName: data.fileName,
         fileSize: data.fileSize,
         timestamp: data.timestamp.toDate(),
+        deletedForEveryone: data.deletedForEveryone || false,
+        deletedAt: data.deletedAt ? data.deletedAt.toDate() : undefined,
       });
     });
     callback(messages);
@@ -205,4 +207,16 @@ export const getUser = async (userId: string): Promise<User | null> => {
     displayName: data.displayName,
     createdAt: new Date(data.createdAt),
   };
+};
+
+export const deleteMessageForEveryone = async (messageId: string): Promise<void> => {
+  const messageRef = doc(db, 'messages', messageId);
+  await setDoc(
+    messageRef,
+    {
+      deletedForEveryone: true,
+      deletedAt: Timestamp.now(),
+    },
+    { merge: true }
+  );
 };
