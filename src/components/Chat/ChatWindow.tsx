@@ -40,6 +40,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [targetLanguage, setTargetLanguage] = useState(initialTargetLanguage);
   const [showSettings, setShowSettings] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -77,7 +78,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const handleSendMessage = async (text: string) => {
     if (!currentUser || !text.trim()) return;
 
-    await sendMessage(chatId, currentUser.uid, otherUser.uid, text);
+    await sendMessage(
+      chatId,
+      currentUser.uid,
+      otherUser.uid,
+      text,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      replyingTo?.id,
+      replyingTo?.senderId === currentUser.uid ? 'You' : otherUser.displayName,
+      replyingTo?.originalText
+    );
+
+    setReplyingTo(null);
   };
 
   const handleSendMedia = async (file: File) => {
@@ -101,8 +116,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         mediaUrl,
         mediaType,
         file.name,
-        file.size
+        file.size,
+        replyingTo?.id,
+        replyingTo?.senderId === currentUser.uid ? 'You' : otherUser.displayName,
+        replyingTo?.originalText
       );
+      setReplyingTo(null);
     } catch (error) {
       console.error('Media upload error:', error);
       alert('Failed to upload media');
@@ -146,6 +165,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
+  const handleReplyToMessage = (messageId: string) => {
+    const message = messages.find((msg) => msg.id === messageId);
+    if (message) {
+      setReplyingTo(message);
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
       <ChatHeader
@@ -166,14 +193,35 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               <MessageBubble
                 key={message.id}
                 message={message}
+                sender={message.senderId === currentUser?.uid ? currentUser : otherUser}
                 onDeleteLocal={handleDeleteLocalMessage}
                 onDeleteForEveryone={handleDeleteMessageForEveryone}
+                onReply={handleReplyToMessage}
               />
             ))}
             <div ref={messagesEndRef} />
           </>
         )}
       </div>
+
+      {replyingTo && (
+        <div className="bg-teal-50 dark:bg-teal-900/30 border-l-4 border-teal-500 p-3 mx-4 rounded flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-teal-700 dark:text-teal-300">
+              Replying to {replyingTo.senderId === currentUser?.uid ? 'yourself' : otherUser.displayName}
+            </p>
+            <p className="text-sm text-teal-600 dark:text-teal-400 truncate">
+              {replyingTo.originalText || `[${replyingTo.mediaType || 'attachment'}]`}
+            </p>
+          </div>
+          <button
+            onClick={() => setReplyingTo(null)}
+            className="ml-2 text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <MessageInput
         onSendMessage={handleSendMessage}

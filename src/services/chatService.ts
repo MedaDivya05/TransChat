@@ -105,6 +105,7 @@ export const getChatMessages = (chatId: string, callback: (messages: Message[]) 
         timestamp: data.timestamp.toDate(),
         deletedForEveryone: data.deletedForEveryone || false,
         deletedAt: data.deletedAt ? data.deletedAt.toDate() : undefined,
+        replyTo: data.replyTo || undefined,
       });
     });
     callback(messages);
@@ -119,7 +120,10 @@ export const sendMessage = async (
   mediaUrl?: string,
   mediaType?: 'image' | 'video' | 'file',
   fileName?: string,
-  fileSize?: number
+  fileSize?: number,
+  replyToId?: string,
+  replyToSenderName?: string,
+  replyToText?: string
 ): Promise<void> => {
   const messagesRef = collection(db, 'messages');
   await addDoc(messagesRef, {
@@ -133,6 +137,11 @@ export const sendMessage = async (
     fileName: fileName || '',
     fileSize: fileSize || 0,
     timestamp: Timestamp.now(),
+    replyTo: replyToId ? {
+      messageId: replyToId,
+      senderName: replyToSenderName || '',
+      text: replyToText || '',
+    } : null,
   });
 
   let lastMessage = text;

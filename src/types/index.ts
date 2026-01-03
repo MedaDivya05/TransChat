@@ -19,6 +19,11 @@ export interface Message {
   timestamp: Date;
   deletedForEveryone?: boolean;
   deletedAt?: Date;
+  replyTo?: {
+    messageId: string;
+    senderName: string;
+    text: string;
+  };
 }
 
 export interface Chat {
